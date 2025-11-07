@@ -78,41 +78,61 @@ bool SelectionTree::Insert(EmployeeData* newData) {
 
 // Delete highest salary employee (root)
 bool SelectionTree::Delete() {
-    if (root == nullptr || root->getEmployeeData() == nullptr)
-        return false;
-
+    // Case 1: Tree is empty
+    if (root == nullptr) return false;
     EmployeeData* top = root->getEmployeeData();
+    if (top == nullptr) return false;
+
     int dept = top->GetDept();
     int idx = (dept / 100) - 1;
-    if (idx < 0 || idx >= 8) return false;
+    if (idx < 0 || idx >= 8 || run[idx] == nullptr) return false;
 
     EmployeeHeap* heap = run[idx]->getHeap();
+    if (heap == nullptr || heap->IsEmpty()) return false;
+
+    // Delete top employee from the heap
     heap->Delete();
 
-    if (heap->IsEmpty()) run[idx]->setEmployeeData(nullptr);
-    else run[idx]->setEmployeeData(heap->Top());
+    // Update leaf node
+    if (heap->IsEmpty())
+        run[idx]->setEmployeeData(nullptr);
+    else
+        run[idx]->setEmployeeData(heap->Top());
 
-    // Propagate updates upward
+    // Rebuild tree upwards safely
     SelectionTreeNode* cur = run[idx];
-    while (cur->getParent() != nullptr) {
+    while (cur && cur->getParent() != nullptr) {
         SelectionTreeNode* parent = cur->getParent();
+        if (!parent) break;
+
         SelectionTreeNode* left = parent->getLeftChild();
         SelectionTreeNode* right = parent->getRightChild();
 
-        EmployeeData* L = left->getEmployeeData();
-        EmployeeData* R = right->getEmployeeData();
+        EmployeeData* L = (left ? left->getEmployeeData() : nullptr);
+        EmployeeData* R = (right ? right->getEmployeeData() : nullptr);
 
-        if (L == nullptr && R == nullptr) parent->setEmployeeData(nullptr);
-        else if (R == nullptr) parent->setEmployeeData(L);
-        else if (L == nullptr) parent->setEmployeeData(R);
-        else {
-            if (L->GetAnnualIncome() >= R->GetAnnualIncome())
-                parent->setEmployeeData(L);
-            else
-                parent->setEmployeeData(R);
-        }
+        if (L == nullptr && R == nullptr)
+            parent->setEmployeeData(nullptr);
+        else if (R == nullptr)
+            parent->setEmployeeData(L);
+        else if (L == nullptr)
+            parent->setEmployeeData(R);
+        else
+            parent->setEmployeeData((L->GetAnnualIncome() >= R->GetAnnualIncome()) ? L : R);
+
         cur = parent;
     }
+
+    // Final root check: if no employees left in all departments, clear root data
+    bool allEmpty = true;
+    for (int i = 0; i < 8; i++) {
+        if (run[i] && !run[i]->getHeap()->IsEmpty()) {
+            allEmpty = false;
+            break;
+        }
+    }
+    if (allEmpty) root->setEmployeeData(nullptr);
+
     return true;
 }
 

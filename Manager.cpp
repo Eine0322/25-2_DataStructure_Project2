@@ -7,8 +7,8 @@
 using namespace std;
 
 Manager::Manager(int bpOrder) {
-    bp = new BpTree(&flog, bpOrder); // Create B+ Tree
-    st = new SelectionTree(&flog);   // Create Selection Tree
+    bp = new BpTree(&flog, bpOrder);
+    st = new SelectionTree(&flog);
 }
 
 Manager::~Manager() {
@@ -22,7 +22,8 @@ Manager::~Manager() {
 
 void Manager::run(const char* command_txt) {
     fcmd.open(command_txt);
-    flog.open("log.txt", ios::out); // overwrite old logs
+    flog.open("log.txt", ios::out);
+
     if (!fcmd.is_open()) {
         flog << "========ERROR========" << endl;
         flog << 800 << endl;
@@ -60,18 +61,17 @@ void Manager::run(const char* command_txt) {
             }
         }
         else if (cmd == "SEARCH_BP") {
-            string a, b;
-            string rest;
-            getline(fcmd, rest);
+            string rest; getline(fcmd, rest);
             stringstream ss(rest);
-            vector<string> v;
-            while (ss >> a) v.push_back(a);
-            if (v.size() == 0) { printErrorCode(300); continue; }
-            if (v.size() == 1) {
-                if (!SEARCH_BP(v[0])) printErrorCode(300);
+            vector<string> arg;
+            string t;
+            while (ss >> t) arg.push_back(t);
+
+            if (arg.size() == 1) {
+                if (!SEARCH_BP(arg[0])) printErrorCode(300);
             }
-            else if (v.size() == 2) {
-                if (!SEARCH_BP(v[0], v[1])) printErrorCode(300);
+            else if (arg.size() == 2) {
+                if (!SEARCH_BP(arg[0], arg[1])) printErrorCode(300);
             }
             else printErrorCode(300);
         }
@@ -125,8 +125,7 @@ void Manager::run(const char* command_txt) {
         }
         else {
             printErrorCode(800);
-            string skip;
-            getline(fcmd, skip);
+            string skip; getline(fcmd, skip);
         }
     }
 
@@ -138,8 +137,7 @@ bool Manager::LOAD() {
     ifstream fin("employee.txt");
     if (!fin.is_open() || bp->getRoot() != nullptr) return false;
 
-    string name;
-    int dept, id, sal;
+    string name; int dept, id, sal;
     while (fin >> name >> dept >> id >> sal) {
         EmployeeData* emp = new EmployeeData();
         emp->SetName(name);
@@ -156,14 +154,13 @@ bool Manager::LOAD() {
 bool Manager::ADD_BP(string name, int dept, int id, int sal) {
     if (dept < 100 || dept > 800 || dept % 100 != 0) return false;
 
-    // Check if exists
     BpTreeNode* node = bp->searchDataNode(name);
     if (node) {
         auto it = node->getDataMap()->find(name);
         if (it != node->getDataMap()->end()) {
-            it->second->SetAnnualIncome(sal);
             it->second->SetDept(dept);
             it->second->SetID(id);
+            it->second->SetAnnualIncome(sal);
             return true;
         }
     }
@@ -225,9 +222,9 @@ bool Manager::ADD_ST(string type, string value) {
         int dept = stoi(value);
         if (dept < 100 || dept > 800 || dept % 100 != 0) return false;
 
-        // Traverse B+ tree to find all employees of this department
         BpTreeNode* node = bp->getRoot();
         while (node->isIndexNode()) node = node->getMostLeftChild();
+
         bool found = false;
         while (node) {
             for (auto it : *node->getDataMap()) {
