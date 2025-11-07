@@ -5,12 +5,11 @@
 #include "BpTreeIndexNode.h"
 #include "EmployeeData.h"
 
-// Class representing a B+ Tree
 class BpTree {
 private:
-    BpTreeNode* root;     // Root node of the tree
-    int order;            // Tree order (degree)
-    ofstream* fout;       // Output file stream for logs
+    BpTreeNode* root;
+    int order;
+    ofstream* fout;
 
 public:
     BpTree(ofstream* fout, int order = 3) {
@@ -18,12 +17,8 @@ public:
         this->order = order;
         this->fout = fout;
     }
+    ~BpTree() { deleteSubTree(root); }
 
-    ~BpTree() {
-        deleteSubTree(root);
-    }
-
-    // Core functions
     bool Insert(EmployeeData* newData);
     bool excessDataNode(BpTreeNode* pDataNode);
     bool excessIndexNode(BpTreeNode* pIndexNode);
@@ -31,7 +26,6 @@ public:
     void splitIndexNode(BpTreeNode* pIndexNode);
     BpTreeNode* searchDataNode(string name);
 
-    // Utility functions
     bool SearchModel(string name, int flag);
     vector<string> SearchRange(string start, string end);
     void Print(BpTreeNode* node);

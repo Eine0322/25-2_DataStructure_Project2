@@ -18,7 +18,7 @@ private:
 public:
     EmployeeData() : name(""), dept_no(0), employee_id(0), annual_income(0) {}
 
-    EmployeeData(string n, int d, int id, int income) 
+    EmployeeData(string n, int d, int id, int income)
         : name(n), dept_no(d), employee_id(id), annual_income(income) {}
 
     void SetName(string n) { name = n; }

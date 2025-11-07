@@ -1,19 +1,20 @@
-// SelectionTree.h
 #pragma once
-#include "BpTree.h"
+#include <fstream>
 #include <stack>
-#include <utility>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include "BpTree.h"
+using namespace std;
 
 class SelectionTree {
 private:
     ofstream* fout;
-    stack<pair<string, string>> history;  // Store recent additions for DELETE
+    stack<pair<string, string>> history;
 
 public:
-    SelectionTree(ofstream* fout) {
-        this->fout = fout;
-    }
-    ~SelectionTree() {}
+    SelectionTree(ofstream* fout);
+    ~SelectionTree();
 
     bool Insert(string key, string value);
     bool Delete();

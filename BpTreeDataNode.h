@@ -2,7 +2,6 @@
 #pragma once
 #include "BpTreeNode.h"
 
-// Class representing a Data Node in the B+ Tree
 class BpTreeDataNode : public BpTreeNode {
 private:
     map<string, EmployeeData*> mapData;
@@ -25,10 +24,8 @@ public:
     BpTreeNode* getPrev() { return pPrev; }
 
     void insertDataMap(string n, EmployeeData* pN) {
-        mapData.insert(map<string, EmployeeData*>::value_type(n, pN));
+        mapData.insert({n, pN});
     }
-
-    void deleteMap(string n) { mapData.erase(n); }
 
     map<string, EmployeeData*>* getDataMap() { return &mapData; }
 };

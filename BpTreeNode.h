@@ -2,7 +2,6 @@
 #pragma once
 #include "EmployeeData.h"
 
-// Base class for B+ Tree nodes
 class BpTreeNode {
 private:
     BpTreeNode* pParent;
