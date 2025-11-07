@@ -1,29 +1,207 @@
+// BpTree.cpp
 #include "BpTree.h"
+#include <cmath>
 
+// Insert new employee data
 bool BpTree::Insert(EmployeeData* newData) {
-	
+    BpTreeNode* newnode;
+
+    if (this->getRoot() == NULL) {
+        newnode = new BpTreeDataNode();
+        root = newnode;
+        newnode->insertDataMap(newData->GetName(), newData);
+        return true;
+    }
+
+    newnode = searchDataNode(newData->GetName());
+    if (!newnode)
+        return false;
+
+    newnode->insertDataMap(newData->GetName(), newData);
+
+    if (excessDataNode(newnode))
+        splitDataNode(newnode);
+
+    return true;
 }
 
+// Check if DataNode is over capacity
 bool BpTree::excessDataNode(BpTreeNode* pDataNode) {
-	
+    return (pDataNode->getDataMap()->size() > order - 1);
 }
 
+// Check if IndexNode is over capacity
 bool BpTree::excessIndexNode(BpTreeNode* pIndexNode) {
-	
+    return (pIndexNode->getIndexMap()->size() > order - 1);
 }
 
+// Split DataNode
 void BpTree::splitDataNode(BpTreeNode* pDataNode) {
-	
+    int splitIndex = ceil((order - 1) / 2.0) + 1;
+    auto dataMap = pDataNode->getDataMap();
+
+    BpTreeNode* newRightNode = new BpTreeDataNode();
+    auto it = dataMap->begin();
+    advance(it, splitIndex - 1);
+
+    for (auto i = it; i != dataMap->end(); ++i)
+        newRightNode->insertDataMap(i->first, i->second);
+
+    dataMap->erase(it, dataMap->end());
+
+    BpTreeNode* parent = pDataNode->getParent();
+    if (parent == NULL) {
+        BpTreeNode* newIndex = new BpTreeIndexNode();
+        newIndex->insertIndexMap(newRightNode->getDataMap()->begin()->first, newRightNode);
+        newIndex->setMostLeftChild(pDataNode);
+        pDataNode->setParent(newIndex);
+        newRightNode->setParent(newIndex);
+        root = newIndex;
+    }
+    else {
+        parent->insertIndexMap(newRightNode->getDataMap()->begin()->first, newRightNode);
+        newRightNode->setParent(parent);
+    }
+
+    // Update linked list
+    BpTreeNode* nextNode = pDataNode->getNext();
+    if (nextNode != NULL) {
+        nextNode->setPrev(newRightNode);
+        newRightNode->setNext(nextNode);
+        newRightNode->setPrev(pDataNode);
+        pDataNode->setNext(newRightNode);
+    } else {
+        pDataNode->setNext(newRightNode);
+        newRightNode->setPrev(pDataNode);
+    }
+
+    if (excessIndexNode(pDataNode->getParent()))
+        splitIndexNode(pDataNode->getParent());
 }
 
+// Split IndexNode
 void BpTree::splitIndexNode(BpTreeNode* pIndexNode) {
-	
+    auto iterLeft = pIndexNode->getIndexMap()->begin();
+    auto iterMid = next(iterLeft);
+    auto iterRight = next(iterMid);
+
+    BpTreeNode* newRightNode = new BpTreeIndexNode();
+    string splitKey = iterMid->first;
+
+    newRightNode->insertIndexMap(iterRight->first, iterRight->second);
+    newRightNode->setMostLeftChild(iterMid->second);
+    iterRight->second->setParent(newRightNode);
+    iterMid->second->setParent(newRightNode);
+
+    pIndexNode->getIndexMap()->erase(iterMid->first);
+    pIndexNode->getIndexMap()->erase(iterRight->first);
+
+    BpTreeNode* parent = pIndexNode->getParent();
+    if (parent == NULL) {
+        BpTreeNode* newIndex = new BpTreeIndexNode();
+        newIndex->insertIndexMap(splitKey, newRightNode);
+        newIndex->setMostLeftChild(pIndexNode);
+        pIndexNode->setParent(newIndex);
+        newRightNode->setParent(newIndex);
+        root = newIndex;
+    }
+    else {
+        parent->insertIndexMap(splitKey, newRightNode);
+        newRightNode->setParent(parent);
+    }
+
+    if (excessIndexNode(pIndexNode->getParent()))
+        splitIndexNode(pIndexNode->getParent());
 }
 
+// Find data node containing a key
 BpTreeNode* BpTree::searchDataNode(string name) {
-	
+    BpTreeNode* cur = root;
+    while (cur != NULL && cur->isIndexNode()) {
+        map<string, BpTreeNode*>* indexMap = cur->getIndexMap();
+        auto it = indexMap->upper_bound(name);
+        if (it == indexMap->begin())
+            cur = cur->getMostLeftChild();
+        else {
+            it--;
+            cur = it->second;
+        }
+    }
+    return cur;
 }
 
-void BpTree::searchRange(string start, string end) {
-    
+// Search for a specific employee
+bool BpTree::SearchModel(string name, int flag) {
+    if (this->getRoot() == NULL)
+        return false;
+
+    BpTreeNode* target = searchDataNode(name);
+    if (!target) return false;
+    auto it = target->getDataMap()->find(name);
+
+    if (it != target->getDataMap()->end()) {
+        EmployeeData* e = it->second;
+        if (flag == 1)
+            *fout << e->GetName() << "/" << e->GetDept() << "/" << e->GetID() << "/" << e->GetAnnualIncome() << endl;
+        else {
+            *fout << "========SEARCH_BP========" << endl;
+            *fout << e->GetName() << "/" << e->GetDept() << "/" << e->GetID() << "/" << e->GetAnnualIncome() << endl;
+            *fout << "=========================" << endl;
+        }
+        return true;
+    }
+    return false;
+}
+
+// Range search (by starting letter)
+vector<string> BpTree::SearchRange(string start, string end) {
+    vector<string> result;
+    if (root == NULL) return result;
+
+    BpTreeNode* node = searchDataNode(start);
+    while (node) {
+        for (auto& kv : *node->getDataMap()) {
+            string key = kv.first;
+            if (key >= start && key <= end)
+                result.push_back(key);
+        }
+        node = node->getNext();
+    }
+    return result;
+}
+
+// Print all data nodes
+void BpTree::Print(BpTreeNode* node) {
+    while (node->isIndexNode())
+        node = node->getMostLeftChild();
+
+    while (node) {
+        for (auto& kv : *node->getDataMap()) {
+            EmployeeData* e = kv.second;
+            *fout << e->GetName() << "/" << e->GetDept() << "/" << e->GetID() << "/" << e->GetAnnualIncome() << endl;
+        }
+        node = node->getNext();
+    }
+}
+
+// Print entire tree
+bool BpTree::Print() {
+    if (root == NULL) return false;
+    *fout << "========PRINT_BP========" << endl;
+    Print(root);
+    *fout << "========================" << endl;
+    return true;
+}
+
+// Delete all nodes
+void BpTree::deleteSubTree(BpTreeNode* node) {
+    if (node == nullptr) return;
+    if (node->isIndexNode()) {
+        for (auto& pair : *(node->getIndexMap()))
+            deleteSubTree(pair.second);
+        node->getIndexMap()->clear();
+    }
+    else if (node->isDataNode())
+        node->getDataMap()->clear();
+    delete node;
 }

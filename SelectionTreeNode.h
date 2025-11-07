@@ -1,39 +1,41 @@
+// SelectionTreeNode.h
 #pragma once
-#include "EmployeeData.h"
 #include "EmployeeHeap.h"
 
 class SelectionTreeNode {
 private:
-    EmployeeData* pData;
-    SelectionTreeNode* pLeft;
-    SelectionTreeNode* pRight;
-    SelectionTreeNode* pParent;
-    EmployeeHeap* hRoot;
+    EmployeeData* employeeData;
+    SelectionTreeNode* leftChild;
+    SelectionTreeNode* rightChild;
+    SelectionTreeNode* parent;
+    EmployeeHeap* heap; // Each leaf node manages a heap (per department)
 
 public:
     SelectionTreeNode() {
-        this->pData = NULL;
-        this->pLeft = NULL;
-        this->pRight = NULL;
-        this->pParent = NULL;
-        this->hRoot = NULL;
+        employeeData = nullptr;
+        leftChild = rightChild = parent = nullptr;
+        heap = nullptr;
     }
+
     ~SelectionTreeNode() {
-        if (hRoot) delete hRoot;
+        if (heap) delete heap;
     }
 
-    void HeapInit() { this->hRoot = new EmployeeHeap; }
+    void HeapInit() {
+        if (heap == nullptr)
+            heap = new EmployeeHeap();
+    }
 
-    void setEmployeeData(EmployeeData* data) { this->pData = data; }
-    void setLeftChild(SelectionTreeNode* pL) { this->pLeft = pL; }
-    void setRightChild(SelectionTreeNode* pR) { this->pRight = pR; }
-    void setParent(SelectionTreeNode* pP) { this->pParent = pP; }
-    void setHeap(EmployeeHeap* pHR) { this->hRoot = pHR; }
+    // Setters
+    void setEmployeeData(EmployeeData* data) { employeeData = data; }
+    void setLeftChild(SelectionTreeNode* node) { leftChild = node; }
+    void setRightChild(SelectionTreeNode* node) { rightChild = node; }
+    void setParent(SelectionTreeNode* node) { parent = node; }
 
-    EmployeeData* getEmployeeData() { return pData; }
-    SelectionTreeNode* getLeftChild() { return pLeft; }
-    SelectionTreeNode* getRightChild() { return pRight; }
-    SelectionTreeNode* getParent() { return pParent; }
-    EmployeeHeap* getHeap() { return hRoot; }
-
+    // Getters
+    EmployeeData* getEmployeeData() { return employeeData; }
+    SelectionTreeNode* getLeftChild() { return leftChild; }
+    SelectionTreeNode* getRightChild() { return rightChild; }
+    SelectionTreeNode* getParent() { return parent; }
+    EmployeeHeap* getHeap() { return heap; }
 };

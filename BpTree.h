@@ -1,35 +1,44 @@
+// BpTree.h
 #pragma once
-#ifndef _BpTree_H_
-#define _BpTree_H_
-
+#include "BpTreeNode.h"
 #include "BpTreeDataNode.h"
 #include "BpTreeIndexNode.h"
 #include "EmployeeData.h"
-#include "SelectionTree.h"
 
+// Class representing a B+ Tree
 class BpTree {
 private:
-	BpTreeNode* root;
-	int	order;		// m children
+    BpTreeNode* root;     // Root node of the tree
+    int order;            // Tree order (degree)
+    ofstream* fout;       // Output file stream for logs
 
 public:
-	BpTree(ofstream *fout, int order = 3) {
-		
-	}
-	
-	~BpTree() {
+    BpTree(ofstream* fout, int order = 3) {
+        root = NULL;
+        this->order = order;
+        this->fout = fout;
+    }
 
-	}
+    ~BpTree() {
+        deleteSubTree(root);
+    }
 
-	/* essential */
-	bool		Insert(EmployeeData* newData);
-	bool		excessDataNode(BpTreeNode* pDataNode);
-	bool		excessIndexNode(BpTreeNode* pIndexNode);
-	void		splitDataNode(BpTreeNode* pDataNode);
-	void		splitIndexNode(BpTreeNode* pIndexNode);
-	BpTreeNode* getRoot() { return root; }
-	BpTreeNode* searchDataNode(string name);
-	void		searchRange(string start, string end);
+    // Core functions
+    bool Insert(EmployeeData* newData);
+    bool excessDataNode(BpTreeNode* pDataNode);
+    bool excessIndexNode(BpTreeNode* pIndexNode);
+    void splitDataNode(BpTreeNode* pDataNode);
+    void splitIndexNode(BpTreeNode* pIndexNode);
+    BpTreeNode* searchDataNode(string name);
+
+    // Utility functions
+    bool SearchModel(string name, int flag);
+    vector<string> SearchRange(string start, string end);
+    void Print(BpTreeNode* node);
+    bool Print();
+
+    BpTreeNode* getRoot() { return root; }
+
+private:
+    void deleteSubTree(BpTreeNode* node);
 };
-
-#endif

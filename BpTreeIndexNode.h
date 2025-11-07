@@ -1,31 +1,23 @@
+// BpTreeIndexNode.h
 #pragma once
-#ifndef _BPTREEINDEXNODE_H_
-#define _BPTREEINDEXNODE_H_
-
 #include "BpTreeNode.h"
-#include <map>
 
+// Class representing an Index Node in the B+ Tree
 class BpTreeIndexNode : public BpTreeNode {
 private:
-	map <string, BpTreeNode*> mapIndex;
+    map<string, BpTreeNode*> mapIndex;
 
 public:
-	BpTreeIndexNode() {}
-	~BpTreeIndexNode() {
+    BpTreeIndexNode() {}
+    ~BpTreeIndexNode() {}
 
-	}
+    bool isIndexNode() const override { return true; }
 
+    void insertIndexMap(string n, BpTreeNode* pN) {
+        mapIndex.insert(map<string, BpTreeNode*>::value_type(n, pN));
+    }
 
-	void insertIndexMap(string name, BpTreeNode* pN) {
-		mapIndex.insert(map<string, BpTreeNode*>::value_type(name, pN));
-	}
+    void deleteMap(string n) { mapIndex.erase(n); }
 
-	void deleteMap(string name) {
-		mapIndex.erase(name);
-	}
-
-	map <string, BpTreeNode*>* getIndexMap() { return &mapIndex; }
-
+    map<string, BpTreeNode*>* getIndexMap() { return &mapIndex; }
 };
-
-#endif

@@ -1,39 +1,32 @@
+// Manager.h
 #pragma once
-#include "SelectionTree.h"
 #include "BpTree.h"
-#include <fstream>
+#include "SelectionTree.h"
 
 class Manager {
 private:
-	char* cmd;
-	BpTree* bptree;
-	SelectionTree* stree;
+    BpTree* bp;             // B+ Tree for employee info
+    SelectionTree* st;      // Selection Tree for department heaps
+    vector<EmployeeData*> empList; // Loaded employees
+    ofstream flog;
+    ifstream fcmd;
 
 public:
-	Manager(int bpOrder) {		//constructor
-		
-	}
+    Manager(int bpOrder);
+    ~Manager();
 
+    void run(const char* command_txt);
 
-	~Manager() {				//destructor
-		
-	}
+private:
+    bool LOAD();
+    bool ADD_BP(string name, int dept, int id, int sal);
+    bool SEARCH_BP(string name);
+    bool SEARCH_BP(string start, string end);
+    bool PRINT_BP();
 
-	ifstream fin;
-	ofstream flog;
+    bool ADD_ST(string type, string value);
+    bool PRINT_ST(int dept);
+    bool DELETE_ST();
 
-	void run(const char* command);
-	void LOAD();
-	void ADD_BP();
-	void SEARCH_BP_NAME(string name);
-	void SEARCH_BP_RANGE(string start, string end);
-	void PRINT_BP();
-	void ADD_ST_DEPTNO(int dept_no);
-	void ADD_ST_NAME(string name);
-	void PRINT_ST();
-	void DELETE();
-
-	void printErrorCode(int n);
-	void printSuccessCode(string success);
+    void printErrorCode(int n);
 };
-
