@@ -6,6 +6,13 @@
 #include <cctype>
 using namespace std;
 
+static inline void splitTokens(const string &line, vector<string> &out) {
+    out.clear();
+    string token;
+    stringstream ss(line);
+    while (ss >> token) out.push_back(token);
+}
+
 Manager::Manager(int bpOrder) {
     bp = new BpTree(&flog, bpOrder);
     st = new SelectionTree(&flog);
@@ -31,14 +38,26 @@ void Manager::run(const char* command_txt) {
         return;
     }
 
-    string cmd;
-    while (fcmd >> cmd) {
+    string line;
+    while (std::getline(fcmd, line)) {
+        // trim leading/trailing spaces (simple)
+        auto l = line.find_first_not_of(" \t\r");
+        if (l == string::npos) continue; // blank line
+        line = line.substr(l);
+        // tokenize by whitespace (handles tabs too)
+        vector<string> tokens;
+        splitTokens(line, tokens);
+        if (tokens.empty()) continue;
+
+        string cmd = tokens[0];
+
         if (cmd == "LOAD") {
-            string tmp;
-            getline(fcmd, tmp);
-            if (!tmp.empty() && tmp.find_first_not_of(" \t\r") != string::npos)
+            // LOAD should have no extra args
+            if (tokens.size() != 1) {
                 printErrorCode(100);
-            else if (!LOAD()) printErrorCode(100);
+                continue;
+            }
+            if (!LOAD()) printErrorCode(100);
             else {
                 flog << "========LOAD========" << endl;
                 flog << "Success" << endl;
@@ -46,14 +65,12 @@ void Manager::run(const char* command_txt) {
             }
         }
         else if (cmd == "ADD_BP") {
-            string name; int dept, id, sal;
-            if (!(fcmd >> name >> dept >> id >> sal)) {
-                printErrorCode(200);
-                fcmd.clear(); fcmd.ignore(256, '\n');
-                continue;
-            }
-            if (!ADD_BP(name, dept, id, sal))
-                printErrorCode(200);
+            if (tokens.size() != 5) { printErrorCode(200); continue; }
+            string name = tokens[1];
+            int dept = stoi(tokens[2]);
+            int id = stoi(tokens[3]);
+            int sal = stoi(tokens[4]);
+            if (!ADD_BP(name, dept, id, sal)) printErrorCode(200);
             else {
                 flog << "========ADD_BP========" << endl;
                 flog << name << "/" << dept << "/" << id << "/" << sal << endl;
@@ -61,35 +78,23 @@ void Manager::run(const char* command_txt) {
             }
         }
         else if (cmd == "SEARCH_BP") {
-            string rest; getline(fcmd, rest);
-            stringstream ss(rest);
-            vector<string> arg;
-            string t;
-            while (ss >> t) arg.push_back(t);
-
-            if (arg.size() == 1) {
-                if (!SEARCH_BP(arg[0])) printErrorCode(300);
+            if (tokens.size() == 2) {
+                if (!SEARCH_BP(tokens[1])) printErrorCode(300);
+            } else if (tokens.size() == 3) {
+                if (!SEARCH_BP(tokens[1], tokens[2])) printErrorCode(300);
+            } else {
+                printErrorCode(300);
             }
-            else if (arg.size() == 2) {
-                if (!SEARCH_BP(arg[0], arg[1])) printErrorCode(300);
-            }
-            else printErrorCode(300);
         }
         else if (cmd == "PRINT_BP") {
-            string tmp; getline(fcmd, tmp);
-            if (!tmp.empty() && tmp.find_first_not_of(" \t\r") != string::npos)
-                printErrorCode(400);
-            else if (!PRINT_BP()) printErrorCode(400);
+            if (tokens.size() != 1) { printErrorCode(400); continue; }
+            if (!PRINT_BP()) printErrorCode(400);
         }
         else if (cmd == "ADD_ST") {
-            string type, val;
-            if (!(fcmd >> type >> val)) {
-                printErrorCode(500);
-                fcmd.clear(); fcmd.ignore(256, '\n');
-                continue;
-            }
-            if (!ADD_ST(type, val))
-                printErrorCode(500);
+            if (tokens.size() != 3) { printErrorCode(500); continue; }
+            string type = tokens[1];
+            string val = tokens[2];
+            if (!ADD_ST(type, val)) printErrorCode(500);
             else {
                 flog << "========ADD_ST========" << endl;
                 flog << "Success" << endl;
@@ -97,20 +102,13 @@ void Manager::run(const char* command_txt) {
             }
         }
         else if (cmd == "PRINT_ST") {
-            int dept;
-            if (!(fcmd >> dept)) {
-                printErrorCode(600);
-                fcmd.clear(); fcmd.ignore(256, '\n');
-                continue;
-            }
-            if (!PRINT_ST(dept))
-                printErrorCode(600);
+            if (tokens.size() != 2) { printErrorCode(600); continue; }
+            int dept = stoi(tokens[1]);
+            if (!PRINT_ST(dept)) printErrorCode(600);
         }
         else if (cmd == "DELETE") {
-            string tmp; getline(fcmd, tmp);
-            if (!tmp.empty() && tmp.find_first_not_of(" \t\r") != string::npos)
-                printErrorCode(700);
-            else if (!DELETE_ST()) printErrorCode(700);
+            if (tokens.size() != 1) { printErrorCode(700); continue; }
+            if (!DELETE_ST()) printErrorCode(700);
             else {
                 flog << "========DELETE========" << endl;
                 flog << "Success" << endl;
@@ -118,6 +116,7 @@ void Manager::run(const char* command_txt) {
             }
         }
         else if (cmd == "EXIT") {
+            if (tokens.size() != 1) { printErrorCode(800); continue; }
             flog << "========EXIT========" << endl;
             flog << "Success" << endl;
             flog << "====================" << endl;
@@ -125,7 +124,7 @@ void Manager::run(const char* command_txt) {
         }
         else {
             printErrorCode(800);
-            string skip; getline(fcmd, skip);
+            continue;
         }
     }
 
