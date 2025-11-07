@@ -14,7 +14,7 @@ private:
     SelectionTree* stree;
 
 public:
-    Manager();
+    Manager(int order = 3);   
     ~Manager();
 
     void run(const char* commandFile);

@@ -1,7 +1,7 @@
 #include "Manager.h"
 #include <sstream>
 
-Manager::Manager() {
+Manager::Manager(int order) {
     fout.open("log.txt");
     bptree = new BpTree(&fout, 3);
     stree = new SelectionTree(&fout);
