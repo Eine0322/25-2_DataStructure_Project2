@@ -1,21 +1,20 @@
 #pragma once
-#include "SelectionTreeNode.h"
+#include "BpTree.h"
+#include <stack>
+#include <utility>
 
 class SelectionTree {
 private:
     ofstream* fout;
-    SelectionTreeNode* root;
-    SelectionTreeNode* run[8]; // Department leaf nodes (100 ~ 800)
+    stack<pair<string, string>> history;  // Store recent additions for DELETE
 
 public:
-    SelectionTree(ofstream* fout);
-    ~SelectionTree();
+    SelectionTree(ofstream* fout) {
+        this->fout = fout;
+    }
+    ~SelectionTree() {}
 
-    void setTree();                          // Build the selection tree
-    bool Insert(EmployeeData* newData);      // Insert employee into tree
-    bool Delete();                           // Delete top (highest salary) employee
-    bool printEmployeeData(int dept_no);     // Print employees in a department (salary descending)
-
-private:
-    void rebuildWinners(SelectionTreeNode* node); // <== ADD THIS FUNCTION
+    bool Insert(string key, string value);
+    bool Delete();
+    bool Print(int dept_no, BpTree* bptree);
 };
