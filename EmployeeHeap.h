@@ -1,36 +1,40 @@
-// EmployeeHeap.h
 #pragma once
+#include <vector>
 #include "EmployeeData.h"
 
+// simple array-based max-heap for EmployeeData pointers, does not own EmployeeData
 class EmployeeHeap {
 private:
-    EmployeeData** heapArr;  // Array-based heap
-    int datanum;             // Number of data
-    int maxCapacity;         // Max array size
+    EmployeeData** heapArr;  // array of pointers, index starts at 1
+    int datanum;             // current number of elements
+    int maxCapacity;         // allocated size of array
 
 public:
     EmployeeHeap() {
         datanum = 0;
         maxCapacity = 100;
         heapArr = new EmployeeData*[maxCapacity];
-        for (int i = 0; i < maxCapacity; i++)
-            heapArr[i] = nullptr;
+        for (int i = 0; i < maxCapacity; ++i) heapArr[i] = nullptr;
     }
 
+    // destructor must not delete EmployeeData pointers (B+ Tree owns them)
     ~EmployeeHeap() {
-        for (int i = 1; i <= datanum; i++) {
-            if (heapArr[i] != nullptr)
-                delete heapArr[i];
-        }
-        delete[] heapArr;
+        delete[] heapArr; // free array storage only
     }
+
+    // prevent copying to avoid shallow-copy issues
+    EmployeeHeap(const EmployeeHeap&) = delete;
+    EmployeeHeap& operator=(const EmployeeHeap&) = delete;
 
     void Insert(EmployeeData* data);
     EmployeeData* Top();
-    void Delete();
-    bool IsEmpty();
+    void Delete(); 
+    bool IsEmpty() const;
 
-    int getDataNum() { return datanum; }
+    int getDataNum() const { return datanum; }
+
+    // safely export current pointers without copying internal array
+    std::vector<EmployeeData*> GetAll() const;
 
 private:
     void UpHeap(int index);

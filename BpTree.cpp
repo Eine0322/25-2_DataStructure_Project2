@@ -175,97 +175,23 @@ bool BpTree::Print() {
     return true;
 }
 
+// delete all nodes and free EmployeeData pointers in data nodes
 void BpTree::deleteSubTree(BpTreeNode* node) {
     if (node == nullptr) return;
+
     if (node->isIndexNode()) {
+        // recursively delete child nodes
         for (auto& pair : *(node->getIndexMap()))
             deleteSubTree(pair.second);
         node->getIndexMap()->clear();
-    } else if (node->isDataNode())
-        node->getDataMap()->clear();
-    delete node;
+    }
+    else if (node->isDataNode()) {
+        // delete all EmployeeData pointers stored in this data node
+        auto dataMap = node->getDataMap();
+        for (auto& kv : *dataMap) {
+            if (kv.second) delete kv.second; // free employee object
+        }
+        dataMap->clear();
+    }
+    delete node; // delete node itself
 }
-
-
-
-// ==============================
-// EmployeeHeap.h / EmployeeHeap.cpp
-// ==============================
-#pragma once
-#include "EmployeeData.h"
-
-class EmployeeHeap {
-private:
-    EmployeeData** heapArr;
-    int datanum;
-    int maxCapacity;
-
-public:
-    EmployeeHeap() {
-        datanum = 0;
-        maxCapacity = 100;
-        heapArr = new EmployeeData*[maxCapacity];
-        for (int i = 0; i < maxCapacity; i++)
-            heapArr[i] = nullptr;
-    }
-
-    ~EmployeeHeap() {
-        for (int i = 1; i <= datanum; i++)
-            if (heapArr[i]) delete heapArr[i];
-        delete[] heapArr;
-    }
-
-    void Insert(EmployeeData* data) {
-        if (datanum + 1 >= maxCapacity) ResizeArray();
-        heapArr[++datanum] = data;
-        UpHeap(datanum);
-    }
-
-    EmployeeData* Top() {
-        if (IsEmpty()) return nullptr;
-        return heapArr[1];
-    }
-
-    void Delete() {
-        if (IsEmpty()) return;
-        heapArr[1] = heapArr[datanum];
-        heapArr[datanum] = nullptr;
-        datanum--;
-        DownHeap(1);
-    }
-
-    bool IsEmpty() { return datanum == 0; }
-    int getDataNum() { return datanum; }
-
-private:
-    void UpHeap(int i) {
-        if (i <= 1) return;
-        int p = i / 2;
-        if (heapArr[p]->GetAnnualIncome() < heapArr[i]->GetAnnualIncome()) {
-            swap(heapArr[p], heapArr[i]);
-            UpHeap(p);
-        }
-    }
-
-    void DownHeap(int i) {
-        int l = 2 * i, r = 2 * i + 1, largest = i;
-        if (l <= datanum && heapArr[l]->GetAnnualIncome() > heapArr[largest]->GetAnnualIncome())
-            largest = l;
-        if (r <= datanum && heapArr[r]->GetAnnualIncome() > heapArr[largest]->GetAnnualIncome())
-            largest = r;
-        if (largest != i) {
-            swap(heapArr[i], heapArr[largest]);
-            DownHeap(largest);
-        }
-    }
-
-    void ResizeArray() {
-        int newCap = maxCapacity * 2;
-        EmployeeData** newArr = new EmployeeData*[newCap];
-        for (int i = 0; i <= datanum; i++)
-            newArr[i] = heapArr[i];
-        delete[] heapArr;
-        heapArr = newArr;
-        maxCapacity = newCap;
-    }
-};

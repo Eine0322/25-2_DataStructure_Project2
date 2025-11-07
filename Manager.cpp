@@ -1,9 +1,9 @@
 #include "Manager.h"
 #include <sstream>
 
-Manager::Manager(int order) {
+Manager::Manager(int order) { // takes B+ tree order
     fout.open("log.txt");
-    bptree = new BpTree(&fout, 3);
+    bptree = new BpTree(&fout, order);
     stree = new SelectionTree(&fout);
 }
 
@@ -13,6 +13,7 @@ Manager::~Manager() {
     fout.close();
 }
 
+// run command file
 void Manager::run(const char* commandFile) {
     fin.open(commandFile);
     if (!fin.is_open()) {
@@ -57,10 +58,10 @@ void Manager::run(const char* commandFile) {
     fin.close();
 }
 
+// load employee data from file
 bool Manager::Load() {
     fout << "========LOAD========" << endl;
-    ifstream data("employee.txt");  // ✅ 수정됨
-
+    ifstream data("employee.txt");
     if (!data.is_open()) {
         fout << "Fail" << endl;
         fout << "====================" << endl;
@@ -80,6 +81,7 @@ bool Manager::Load() {
     return true;
 }
 
+// add new employee into B+ tree
 bool Manager::Add_BP(string name, int dept, int id, int income) {
     fout << "========ADD_BP========" << endl;
     EmployeeData* emp = new EmployeeData(name, dept, id, income);
@@ -89,6 +91,7 @@ bool Manager::Add_BP(string name, int dept, int id, int income) {
     return true;
 }
 
+// search by name or range
 bool Manager::Search_BP(string arg1, string arg2) {
     fout << "========SEARCH_BP========" << endl;
     if (arg2.empty()) {
@@ -102,18 +105,22 @@ bool Manager::Search_BP(string arg1, string arg2) {
     return true;
 }
 
+// print all employees in B+ tree
 bool Manager::Print_BP() {
     return bptree->Print();
 }
 
+// add data into selection tree
 bool Manager::Add_ST(string type, string value) {
-    return stree->Insert(type, value);
+    return stree->Insert(type, value, bptree);
 }
 
+// print selection tree for department
 bool Manager::Print_ST(int dept_no) {
-    return stree->Print(dept_no, bptree);
+    return stree->Print(dept_no);
 }
 
+// delete top employee (highest salary)
 bool Manager::Delete() {
     return stree->Delete();
 }

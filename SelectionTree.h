@@ -1,22 +1,23 @@
 #pragma once
 #include <fstream>
-#include <stack>
+#include <unordered_map>
 #include <vector>
-#include <map>
-#include <algorithm>
+#include <string>
 #include "BpTree.h"
+#include "EmployeeHeap.h"
 using namespace std;
 
 class SelectionTree {
 private:
     ofstream* fout;
-    stack<pair<string, string>> history;
+    unordered_map<int, EmployeeHeap*> heapMap; // map from dept_no to heap pointer
 
 public:
     SelectionTree(ofstream* fout);
     ~SelectionTree();
 
-    bool Insert(string key, string value);
-    bool Delete();
-    bool Print(int dept_no, BpTree* bptree);
+    // insert by "dept_no" or "name", bptree is used for lookups
+    bool Insert(string key, string value, BpTree* bptree);
+    bool Delete();                // remove global highest salary employee
+    bool Print(int dept_no);      // print employees in dept sorted by salary
 };
