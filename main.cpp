@@ -1,4 +1,3 @@
-// main.cpp
 #include "Manager.h"
 
 int main() {

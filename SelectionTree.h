@@ -9,15 +9,22 @@ using namespace std;
 
 class SelectionTree {
 private:
-    ofstream* fout;
-    unordered_map<int, EmployeeHeap*> heapMap; // map from dept_no to heap pointer
+    ofstream* fout; // output file stream for writing results
+    unordered_map<int, EmployeeHeap*> heapMap; // map storing each department's heap (key: dept_no)
 
 public:
+    // constructor: initialize SelectionTree with output file stream
     SelectionTree(ofstream* fout);
+
+    // destructor: release allocated memory and clear resources
     ~SelectionTree();
 
-    // insert by "dept_no" or "name", bptree is used for lookups
+    // insert employee data by department number or name using B+ tree lookup
     bool Insert(string key, string value, BpTree* bptree);
-    bool Delete();                // remove global highest salary employee
-    bool Print(int dept_no);      // print employees in dept sorted by salary
+
+    // delete the employee with the highest salary among all departments
+    bool Delete();
+
+    // print all employees in the given department, sorted by salary
+    bool Print(int dept_no);
 };
